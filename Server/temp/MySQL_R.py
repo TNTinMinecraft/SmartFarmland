@@ -2,9 +2,9 @@ import pymysql
 
 db = pymysql.connect(host='',
                      port=8883,
-                     user='smartfarmland',
-                     password='smartfarmland',
-                     db='smartfarmland',
+                     user='',
+                     password='',
+                     db='',
                      charset="utf8")
 
 cursor = db.cursor()

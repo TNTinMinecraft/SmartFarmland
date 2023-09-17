@@ -5,9 +5,9 @@ def db_test():
     # 创建数据库连接(需要修改)
     db = pymysql.connect(host='',
                         port=8883,
-                        user='smartfarmland',
-                        password='smartfarmland',
-                        db='smartfarmland',
+                        user='',
+                        password='',
+                        db='',
                         charset="utf8")
 
     # 使用 cursor() 方法创建一个游标对象 cursor
