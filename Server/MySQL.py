@@ -11,7 +11,6 @@ db = pymysql.connect(host=config.mysql_db["host"],
 # 遍历打完整库
 def print_db(table_name):
     cursor = db.cursor()
-    #query = ("SELECT * FROM shebei_in")
     cursor.execute(f"SELECT * FROM `{table_name}`")
 
     for row in cursor.fetchall():

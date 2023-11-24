@@ -5,9 +5,11 @@ from flask import Flask, request, jsonify
 import threading
 import config
 
+import automation
+
 app = Flask(__name__)
 
-# json解码
+# 设备在线状态解码
 def DeMQTT(in_topic, in_message):
     MQTT_data = json.loads(in_message)
 
@@ -23,14 +25,19 @@ def DeMQTT(in_topic, in_message):
 # 回调函数：当建立连接时
 def on_connect(client, userdata, flags, rc):
     print(rc)
-    client.subscribe("$SYS/brokers/+/clients/#")
+    client.subscribe("$SYS/brokers/+/clients/#") # 设备在线状态
+    client.subscribe("smfl/back") # 设备控制
 
 # 回调函数：当收到消息时
 def on_message(client, userdata, msg):
     MQTT_message = str(msg.payload.decode('utf-8'))
     MQTT_topic = str(msg.topic)
-    print(MQTT_topic + " " + MQTT_message)
-    DeMQTT(MQTT_topic, MQTT_message)
+    if MQTT_topic == "smfl/back": # 设备返回
+        back_data = json.loads(MQTT_message)
+        automation.auto_in(back_data)
+    else: # 设备在线状态
+        print(MQTT_topic + " " + MQTT_message)
+        DeMQTT(MQTT_topic, MQTT_message)
 
 # 创建客户端
 client = mqtt.Client(client_id=config.MQTT["client_id"])
@@ -67,6 +74,10 @@ def api_page():
 def run_mqtt_loop():
     client.loop_forever()
 
+#automation
+def run_automation():
+    automation.main()
+
 # api server
 def run_flask_api():
     app.run()
@@ -74,14 +85,17 @@ def run_flask_api():
 if __name__ == '__main__':
     # 创建线程
     mqtt_thread = threading.Thread(target=run_mqtt_loop)
+    auto_thread = threading.Thread(target=run_automation)
     flask_thread = threading.Thread(target=run_flask_api)
     
     # 设置为守护线程
     mqtt_thread.daemon = True
+    auto_thread.daemon = True
     flask_thread.daemon =True
 
     # 启动线程
     mqtt_thread.start()
+    auto_thread.start()
     flask_thread.start()
 
     # 退出
