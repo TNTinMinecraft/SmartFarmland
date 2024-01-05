@@ -20,7 +20,7 @@ def print_db(table_name):
 # 查询设备行数
 def get_MAC(table_name, found_MAC):
     cursor = db.cursor()
-    cursor.execute(f"SELECT * FROM `{table_name}` WHERE id_in = %s", 
+    cursor.execute(f"SELECT * FROM `{table_name}` WHERE id = %s", 
                        (found_MAC,))
     db_get = cursor.fetchall()
     if len(db_get) > 0: # 判断长度大于0
@@ -33,10 +33,10 @@ def get_MAC(table_name, found_MAC):
 def db_write(table_name, clint_st):
     cursor = db.cursor()
     try:
-        cursor.execute(f"INSERT INTO `{table_name}` (id_in, name_in, status) VALUES (%s, %s, %s)",
+        cursor.execute(f"INSERT INTO `{table_name}` (id, name, status) VALUES (%s, %s, %s)",
                         (clint_st[0], clint_st[1], clint_st[2]))
         db.commit()
-        return
+        return      
     
     except:
         print ("Error! db_write")
@@ -45,7 +45,7 @@ def db_write(table_name, clint_st):
 def switch_status(table_name, found_MAC, in_status):
     cursor = db.cursor()
     try:
-        cursor.execute(f"UPDATE `{table_name}` SET status = %s WHERE id_in = %s",
+        cursor.execute(f"UPDATE `{table_name}` SET status = %s WHERE id = %s",
                         (in_status, found_MAC))
         db.commit()
         return

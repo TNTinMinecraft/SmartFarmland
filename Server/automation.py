@@ -1,10 +1,10 @@
 import time
-import MySQL
+import pymysql
 import threading
 import config
 import json
 
-db = MySQL.connect(host=config.mysql_db["host"],
+db = pymysql.connect(host=config.mysql_db["host"],
                      port=config.mysql_db["port"],
                      user=config.mysql_db["user"],
                      password=config.mysql_db["password"],
@@ -45,7 +45,7 @@ auto_thread.start()
 def auto_in(in_data):
     in_json = in_data
     print(in_data["id"])
-    if in_data["mode"] == "chuangan":
+    if in_data["mode"] == "chuagan":
         print(in_data["data"])
     elif in_data["mode"] == "kongzhi":
         print(in_data["data"])
