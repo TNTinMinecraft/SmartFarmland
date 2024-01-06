@@ -43,7 +43,7 @@ def on_message(client, userdata, msg):
         try:
             back_data = json.loads(MQTT_message)
             print(back_data)
-            #automation.auto_in(back_data)
+            automation.auto_in(back_data)
         except:
             print("Error! back_data")
 
@@ -51,14 +51,13 @@ def on_message(client, userdata, msg):
             status_data = json.loads(MQTT_message)
             print(status_data)
             if status_data["mode"] == "out":
-                MySQL.write_status("shebei_out", status_data["id"], status_data["status"])
+                MySQL.write_status("shebei_out", status_data["id"], status_data["status"], )
                 MySQL.print_db("shebei_out") # debug
             elif status_data["mode"] == "in":
                 MySQL.write_status("shebei_in",  status_data["id"], status_data["status"])
                 MySQL.print_db("shebei_in") # debug
             else:
                 print("Error! status_data")
-                
 
     else: # 设备在线状态
         print(MQTT_topic + " " + MQTT_message)
@@ -104,7 +103,7 @@ def run_automation():
 
 # api server
 def run_flask_api():
-    app.run(port=8166)
+    app.run(host='0.0.0.0', port=8166)
 
 if __name__ == '__main__':
     # 创建线程

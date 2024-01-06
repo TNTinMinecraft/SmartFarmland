@@ -2,13 +2,13 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 
-const char* ssid = "";
-const char* password = "";
-const char* mqtt_server = "192.168.31.193";     // MQTT服务器IP
+const char* ssid = "mi";
+const char* password = "11111111";
+const char* mqtt_server = "192.168.2.94";     // MQTT服务器IP
 const char* client_id = "NULL";                    // 客户端标识，使用MAC地址
 String MAC_ID = "";
 
-int switchPin = 2;
+int switchPin = 16;
 
 WiFiClient espClient;
 PubSubClient client(espClient);
