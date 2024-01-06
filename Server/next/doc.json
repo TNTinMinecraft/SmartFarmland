@@ -1,0 +1,13 @@
+// 一个开关上线，状态为关
+{
+    "mac": "AA:00:00:00:00:00",
+    "mode": "out",
+    "status": "online",
+    "leixing": "kaiguan",
+    "zhuangtai": "off"
+}
+
+{
+    "mac": "AA:00:00:00:00:00",
+    "success": true
+}

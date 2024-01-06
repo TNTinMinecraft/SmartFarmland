@@ -74,7 +74,7 @@ void reconnect() {
       // client.publish("CMAC", client_id);
       client.publish("smfl/status", ("{\"status\": \"online\", \"id\": \"" + MAC_ID + "\", \"mode\": \"out\"}").c_str());
       // 连接成功时订阅主题
-      client.subscribe("smfl/contorl");
+      client.subscribe("smfl/control");
       Serial.println("online");
     } else {
       Serial.print("failed, rc=");

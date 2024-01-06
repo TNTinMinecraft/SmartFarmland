@@ -3,11 +3,14 @@ import paho.mqtt.client as mqtt
 import threading
 from flask import Flask, request, jsonify
 import json
+import MySQL
+import time
 
 # Flask app init
 app = Flask(__name__)
 # 设定客户端ID
 client = mqtt.Client(config.MQTT["client_id"])
+mqtt_done = "MAC" # 等待返回
 
 # 回调函数：当建立连接时
 def on_connect(client, userdata, flags, rc):
@@ -17,7 +20,36 @@ def on_connect(client, userdata, flags, rc):
 
 # 回调函数：当收到消息时
 def on_message(client, userdata, msg):
-    print("") 
+    global mqtt_done
+    MQTT_topic = str(msg.topic)
+    try:
+        MQTT_message = json.loads(str(msg.payload.decode('utf-8')))
+    except Exception as e:
+        print("Error! MQTT_message", e)
+        return
+    
+    print(MQTT_message) # debug
+
+    if MQTT_topic == "smfl/status": # 设备状态
+        if MQTT_message["mode"] == "in":
+            MySQL.update_status("chuanganqi",MQTT_message["mac"], MQTT_message["status"], MQTT_message["leixing"])
+            print(f"chuanganqi {MQTT_message['mac']} {MQTT_message['status']} {MQTT_message['leixing']}") # debug
+        elif MQTT_message["mode"] == "out":
+            MySQL.update_status("xiaoyinqi",MQTT_message["mac"], MQTT_message["status"], MQTT_message["leixing"])
+            print(f"xiaoyinqi {MQTT_message['mac']} {MQTT_message['status']} {MQTT_message['leixing']}") # debug
+        else:
+            print("Error! not define mode in status_json")
+
+    elif MQTT_topic == "smfl/back": # 设备返回
+        try:
+            if MQTT_message["success"]:
+                mqtt_done = MQTT_message["mac"]
+        except Exception as e:
+            print("Error! MQTT_message", e)
+            return
+    
+    else:
+        print("Error! not define topic")
 
 # 根路由
 @app.route('/')
@@ -26,14 +58,26 @@ def main_page():
 
 @app.route('/api', methods=['GET'])
 def conturl_api():
-    api_id_out = request.args.get('id_out')
+    global mqtt_done
+    mqtt_done = "MAC"
+    api_mac_out = request.args.get('mac_out')
     api_set = request.args.get('set')
-    if api_id_out == None or api_set == None:
+    if api_mac_out == None or api_set == None:
         return "Error! Please use GET method to send data."
     else:
-        api_data_json = json.dumps({"id_out": api_id_out, "set": api_set})
+        api_data_json = json.dumps({"id_out": api_mac_out, "set": api_set})
         client.publish("smfl/control", api_data_json)
-        return f"ID: {api_id_out} SET: {api_set}"
+        start_time = time.time()
+        while mqtt_done != api_mac_out: # 等待执行成功
+            print("Waiting for MQTT...", api_mac_out)
+            if time.time() - start_time > 1:
+                MySQL.switch_status("xiaoyinqi", api_mac_out, "offline", "off")
+                MySQL.db_debug("xiaoyinqi")
+                print("Error! MQTT timeout")
+                return "Error! MQTT timeout"
+            time.sleep(0.1)
+        MySQL.switch_status("xiaoyinqi", api_mac_out, "online", api_set)
+        return f"ID: {api_mac_out} SET: {api_set}"
 
 # MQTT线程
 def MQTT_loop():
