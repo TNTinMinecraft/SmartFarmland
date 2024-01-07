@@ -1,4 +1,5 @@
 // 一个开关上线，状态为关
+smfl/status
 {
     "mac": "AA:00:00:00:00:00",
     "mode": "out",
@@ -7,7 +8,14 @@
     "zhuangtai": "off"
 }
 
+smfl/callback
 {
     "mac": "AA:00:00:00:00:00",
     "success": true
+}
+
+smfl/chuangan
+{
+    "mac": "AA:00:00:00:00:00",
+    "data": "20"
 }

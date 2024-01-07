@@ -13,3 +13,8 @@ MQTT = {
     "keeplive":60,
     "client_id":"Py_server"
 }
+
+main_define = {
+    "wendu": "CC:50:E3:CC:50:E3",
+    "shidu": "CD:50:E3:CC:50:E3"
+}

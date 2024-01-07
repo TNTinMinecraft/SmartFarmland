@@ -14,9 +14,35 @@ def get_from_MAC(table_name, found_MAC):
     cursor.execute(f"SELECT * FROM `{table_name}` WHERE mac = %s", 
                        (found_MAC,))
     db_get = cursor.fetchall()
-    if len(db_get) > 0: # 判断长度大于0
+    if cursor.rowcount > 0: # 判断行数大于0
         return db_get
     else:
+        return -1
+
+# 获取全表
+def get_all_db(table_name):
+    cursor = db.cursor()
+    cursor.execute(f"SELECT * FROM `{table_name}`")
+    return cursor.fetchall()
+
+# 获取行数
+def get_row(table_name):
+    cursor = db.cursor()
+    cursor.execute(f"SELECT * FROM `{table_name}`")
+    return cursor.rowcount # 返回行数
+
+# 记录度数
+def write_data(table_name, mac, time, data):
+    cursor = db.cursor()
+    try:
+        cursor.execute(f"UPDATE `{table_name}` SET time = %s data = %s WHERE mac = %s", 
+                       (time, data, mac))
+        db.commit()
+        return      
+    
+    except Exception as e:
+        print("Error in MySQL.write_data:", e)
+        db.rollback()
         return -1
 
 # 修改设备状态
@@ -52,6 +78,20 @@ def update_status(table_name, mac, status, leixing):
             return -1
     else:
         switch_status(table_name, mac, status, "")
+
+# 更新时间
+def update_timer(table_name, mac, time):
+    cursor = db.cursor()
+    try:
+        cursor.execute(f"UPDATE `{table_name}` SET time = %s WHERE mac = %s", 
+                       (time, mac))
+        db.commit()
+        return      
+    
+    except Exception as e:
+        print("Error in MySQL.update_timer:", e)
+        db.rollback()
+        return -1
 
 # debug
 def db_debug(table_name):
