@@ -45,7 +45,7 @@ def on_message(client, userdata, msg):
             MySQL.update_status("xiaoyingqi", MQTT_message["mac"], MQTT_message["status"], MQTT_message["leixing"])
             print(f"xiaoyingqi {MQTT_message['mac']} {MQTT_message['status']} {MQTT_message['leixing']}") # debug
         else:
-            print("Error! not define mode in status_json")
+            print("Error! not define mode in status_json", MQTT_message)
     
     # 自动化返回
     elif MQTT_topic == "smfl/chuangan":
@@ -68,8 +68,9 @@ def on_message(client, userdata, msg):
     
     # 未定义topic
     else:
-        print("Error! not define topic")
+        print("Error! not define topic", MQTT_topic)
 
+# 写入传感器度数
 def MQTT_get():
     global mqtt_get
     mqtt_get["mac"] = "-1"
@@ -86,11 +87,19 @@ def MQTT_get():
                 if time.time() - start_time > 0.5:
                     MySQL.switch_status("chuanganqi", sql_data[sql_row][0], "offline", "-1")
                     MySQL.db_debug("chuanganqi") # debug
-                    print("Error! MQTT timeout")
+                    print("Error! MQTT timeout", sql_data[sql_row][0])
                     return "Error! MQTT timeout"
                 time.sleep(0.1)
             MySQL.switch_status("chuanganqi", sql_data[sql_row][0], "online", mqtt_get["data"]) # 修改状态
             MySQL.write_data("chuanganqi", sql_data[sql_row][0], time.time(), mqtt_get["data"]) # 写入数值
+            # 选择主传感器
+            if sql_data[sql_row][0] == config.main_define["wendu"]:
+                MySQL.write_data("chuanganqi", "wendu", time.time(), mqtt_get["data"]) # 主温度传感器
+            elif sql_data[sql_row][0] == config.main_define["shidu"]:
+                MySQL.write_data("chuanganqi", "shidu", time.time(), mqtt_get["data"]) # 主湿度传感器
+            # 存入自动化
+            automation.auto_in({"mac": sql_data[sql_row][0], "data": mqtt_get["data"]})
+            
             print(f"chuanganqi {sql_data[sql_row][0]} {mqtt_get['data']}") # debug
         print("MQTT_get end")
         time.sleep(10) # 更新间隔，默认3600秒（1小时）
@@ -105,21 +114,23 @@ def main_page():
 def conturl_api():
     global mqtt_done
     mqtt_done = "MAC"
-
+    # 获取GET参数
     api_mac_out = request.args.get('mac_out')
     api_set = request.args.get('set')
+
     if api_mac_out == None or api_set == None:
-        return "Error! Please use GET method to send data."
+        return "Error! your GET method is wrong"
     else:
         api_data_json = json.dumps({"id_out": api_mac_out, "set": api_set})
         client.publish("smfl/control", api_data_json)
+        # 等待执行成功
         start_time = time.time()
-        while mqtt_done != api_mac_out: # 等待执行成功
+        while mqtt_done != api_mac_out:
             print("Waiting for MQTT...", api_mac_out)
             if time.time() - start_time > 1: # 超时1S
                 MySQL.switch_status("xiaoyingqi", api_mac_out, "offline", "off")
                 MySQL.db_debug("xiaoyingqi") # debug
-                print("Error! MQTT timeout")
+                print("Error! MQTT timeout", api_mac_out)
                 return "Error! MQTT timeout"
             time.sleep(0.1)
         MySQL.switch_status("xiaoyingqi", api_mac_out, "online", api_set)
@@ -138,7 +149,7 @@ def MQTT_loop():
 
 # Flask线程
 def flask_loop():
-    app.run(host="0.0.0.0", port=8166)
+    app.run(host=config.api_server["host"], port=config.api_server["port"], debug=False)
 
 # 自动化线程
 def auto_loop():
@@ -156,11 +167,11 @@ if __name__ == "__main__":
     auto_thread.setDaemon(True)
 
     # 启动线程
-    mqtt_thread.start()
+    #mqtt_thread.start()
     print("MQTT_thread start")
     flask_thread.start()
     print("Flask_thread start")
-    auto_thread.start()
+    #auto_thread.start()
     print("Auto_thread start")
 
     try:

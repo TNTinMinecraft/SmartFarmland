@@ -4,13 +4,13 @@ import config
 import json
 
 def auto_in(in_data):
-    sql_data = MySQL.get_from_MAC("zidonghua", in_data["id"])
+    sql_data = MySQL.get_from_MAC("zidonghua", in_data["mac"])
     if sql_data != -1:
         raw_data = f'{in_data["data"]} {sql_data[1]} {sql_data[2]}'
         if eval(raw_data):
             print("OK") # 成立
         else:
-            MySQL.update_timer("zidonghua", in_data["id"], "-1") # 不成立
+            MySQL.update_timer("zidonghua", in_data["mac"], "-1") # 不成立
 
 def auto():
     while True:
