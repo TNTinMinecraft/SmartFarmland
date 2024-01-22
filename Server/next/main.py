@@ -146,14 +146,9 @@ def auto_loop():
 
 if __name__ == "__main__":
     # 创建线程
-    mqtt_thread = threading.Thread(target=MQTT_loop)
-    flask_thread = threading.Thread(target=flask_loop)
-    auto_thread = threading.Thread(target=auto_loop)
-
-    # 设定守护线程
-    mqtt_thread.setDaemon(True)
-    flask_thread.setDaemon(True)
-    auto_thread.setDaemon(True)
+    mqtt_thread = threading.Thread(target=MQTT_loop, daemon=True)
+    flask_thread = threading.Thread(target=flask_loop, daemon=True)
+    auto_thread = threading.Thread(target=auto_loop, daemon=True)
 
     # 启动线程
     mqtt_thread.start()
